@@ -1,0 +1,5 @@
+package com.book.club.controllers;
+
+public class HomeController {
+
+}

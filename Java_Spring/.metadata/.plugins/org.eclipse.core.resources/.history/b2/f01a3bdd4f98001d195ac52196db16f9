@@ -1,0 +1,77 @@
+package com.project.manager.controllers;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import com.project.manager.models.LoginUser;
+import com.project.manager.models.Project;
+import com.project.manager.models.User;
+import com.project.manager.services.ProjectService;
+import com.project.manager.services.UserService;
+
+@Controller
+public class HomeController {
+	@Autowired
+	private UserService userServ;
+	
+	@Autowired
+	private ProjectService projectServ;
+	
+	@GetMapping("/")
+	public String index(Model model) {
+		model.addAttribute("newUser", new User());
+		model.addAttribute("newLogin", new LoginUser());
+		return "index.jsp";
+	}
+	
+	@PostMapping("/register")
+	public String register(@Valid @ModelAttribute("newUser") User newUser, BindingResult result, Model model, HttpSession session) {
+		User user = userServ.register(newUser, result);
+		if (result.hasErrors()) {
+			model.addAttribute("newLogin", new LoginUser());
+			return "index.jsp";
+		}
+		session.setAttribute("userId", user.getId());
+		return "redirect:/books";
+	}
+	
+	@PostMapping("/login")
+	public String login(@Valid @ModelAttribute("newLogin") LoginUser newLogin, BindingResult result, Model model, HttpSession session) {
+		User logUser = userServ.login(newLogin, result);
+		if (logUser==null) {
+			model.addAttribute("newUser", new User());
+			return "index.jsp";
+		}
+		session.setAttribute("userId", logUser.getId());
+		return "redirect:/books";
+	}
+	
+	@GetMapping("/books")
+	public String home(HttpSession session, Model model) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		
+		Long userId = (Long)session.getAttribute("userId");
+		List<Project> projects = projectServ.all();
+		model.addAttribute("project", projects);
+		model.addAttribute("user", userServ.findById(userId));
+		return "home.jsp";
+	}
+	
+	@GetMapping("/logout")
+	public String logout(HttpSession session) {
+		session.removeAttribute("userId");
+		return "redirect:/";
+	}
+}

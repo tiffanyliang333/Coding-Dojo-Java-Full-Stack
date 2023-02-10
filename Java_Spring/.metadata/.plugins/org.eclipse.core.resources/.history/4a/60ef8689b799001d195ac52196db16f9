@@ -1,0 +1,5 @@
+package com.tv.shows.models;
+
+public class LoginUser {
+
+}

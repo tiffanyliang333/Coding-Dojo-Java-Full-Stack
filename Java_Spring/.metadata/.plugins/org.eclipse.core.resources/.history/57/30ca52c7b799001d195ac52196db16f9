@@ -1,0 +1,5 @@
+package com.tv.shows.repositories;
+
+public interface UserRepo {
+
+}

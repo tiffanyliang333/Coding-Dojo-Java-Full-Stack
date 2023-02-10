@@ -1,0 +1,25 @@
+package com.safetravels.mvc.controllers;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Controller
+public class TravelController {
+	
+	@GetMapping("/")
+	public String route() {
+		return "redirect:/expenses";
+	}
+	@GetMapping("/expenses")
+	public String index() {
+		return "index.jsp";
+	}
+	
+	@GetMapping("/{travelId}")
+	public String show(@PathVariable("travelId") Long travelId) {
+		return "show.jsp";
+	}
+}

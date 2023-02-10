@@ -1,0 +1,188 @@
+package com.project.manager.controllers;
+
+
+
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.project.manager.models.LoginUser;
+import com.project.manager.models.Project;
+import com.project.manager.models.User;
+import com.project.manager.services.ProjectService;
+import com.project.manager.services.UserService;
+
+@Controller
+public class HomeController {
+	@Autowired
+	private UserService userServ;
+	
+	@Autowired
+	private ProjectService projectServ;
+	
+	@GetMapping("/")
+	public String index(Model model) {
+		model.addAttribute("newUser", new User());
+		model.addAttribute("newLogin", new LoginUser());
+		return "index.jsp";
+	}
+	
+	@PostMapping("/register")
+	public String register(@Valid @ModelAttribute("newUser") User newUser, BindingResult result, Model model, HttpSession session) {
+		User user = userServ.register(newUser, result);
+		if (result.hasErrors()) {
+			model.addAttribute("newLogin", new LoginUser());
+			return "index.jsp";
+		}
+		session.setAttribute("userId", user.getId());
+		return "redirect:/dashboard";
+	}
+	
+	@PostMapping("/login")
+	public String login(@Valid @ModelAttribute("newLogin") LoginUser newLogin, BindingResult result, Model model, HttpSession session) {
+		User logUser = userServ.login(newLogin, result);
+		if (logUser==null) {
+			model.addAttribute("newUser", new User());
+			return "index.jsp";
+		}
+		session.setAttribute("userId", logUser.getId());
+		return "redirect:/dashboard";
+	}
+	
+	@GetMapping("/dashboard")
+	public String dashboard(HttpSession session, Model model) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		
+		Long userId = (Long)session.getAttribute("userId");
+		User user = userServ.findById(userId);
+		model.addAttribute("user", user);
+		model.addAttribute("userProjects", projectServ.getUserProjects(user));
+		model.addAttribute("notUserProjects", projectServ.getNotUserProjects(user));
+		return "dashboard.jsp";
+	}
+	
+	@GetMapping("/logout")
+	public String logout(HttpSession session) {
+		session.removeAttribute("userId");
+		return "redirect:/";
+	}
+	
+	@RequestMapping("/dashboard/join/{id}")
+	public String joinProject(@PathVariable("id") Long id, HttpSession session, Model model) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		Long userId = (Long) session.getAttribute("userId");
+		Project project = projectServ.findById(id);
+		User user = userServ.findById(userId);
+		user.getProjects().add(project);
+		userServ.updateUser(user);
+		model.addAttribute("user", user);
+		model.addAttribute("userProjects", projectServ.getUserProjects(user));
+		model.addAttribute("notUserProjects", projectServ.getNotUserProjects(user));
+		return "redirect:/dashboard";
+	}
+	
+	@RequestMapping("/dashboard/leave/{id}")
+	public String leaveProject(@PathVariable("id") Long id, HttpSession session, Model model) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		Long userId = (Long) session.getAttribute("userId");
+		Project project = projectServ.findById(id);
+		User user = userServ.findById(userId);
+		user.getProjects().remove(project);
+		userServ.updateUser(user);
+		model.addAttribute("user", user);
+		model.addAttribute("userProjects", projectServ.getUserProjects(user));
+		model.addAttribute("notUserProjects", projectServ.getNotUserProjects(user));
+		return "redirect:/dashboard";
+	}
+	
+	@GetMapping("/projects/{id}")
+	public String view(@PathVariable("id") Long id, HttpSession session, Model model) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		Project project = projectServ.findById(id);
+		model.addAttribute("project", project);
+		return "view.jsp";
+	}
+	
+	@GetMapping("/projects/edit/{id}")
+	public String editProject(@PathVariable("id") Long id, HttpSession session, Model model) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		Project project = projectServ.findById(id);
+		model.addAttribute("project", project);
+		return "edit.jsp";
+	}
+	
+	@PostMapping("proejects/edit/{id}")
+	public String updateProject(@Valid @ModelAttribute("project") Project project, @PathVariable("id") Long id, BindingResult result, HttpSession session) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		Long userId = (Long)session.getAttribute("userId");
+		User user = userServ.findById(userId);
+		if(result.hasErrors()) {
+			return "edit.jsp";
+		} else {
+			Project thisProject = projectServ.findById(id);
+			project.setUsers(thisProject.getUsers());
+			project.setLead(user);
+			projectServ.update(project);
+			return "redirect:/dashboard";
+		}
+	}
+	
+	@RequestMapping("/projects/delete/{id}")
+	public String destroyProject(@PathVariable("id") Long id, HttpSession session) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		Project project = projectServ.findById(id);
+		projectServ.deleteProject(project);
+		return "redirect:/dashboard";
+	}
+	
+	@GetMapping("/projects/new")
+	public String newProject(@ModelAttribute("project") Project project, HttpSession session, Model model) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		Long userId = (Long)session.getAttribute("userId");
+		model.addAttribute("userId", userId);
+		return "new.jsp";
+	}
+	
+	@PostMapping("/projects/new")
+	public String addNewProject(@Valid @ModelAttribute("project") Project project, BindingResult result, HttpSession session) {
+		if(session.getAttribute("userId") == null) {
+			return "redirect:/";
+		}
+		if(result.hasErrors()) {
+			return "new.jsp";
+		}else {
+			projectServ.upload(project);
+			Long userId = (Long)session.getAttribute("userId");
+			User user = userServ.findById(userId);
+			user.getProjects().add(project);
+			userServ.updateUser(user);
+			return "redirect:/dashboard";
+		}
+	}
+	
+}

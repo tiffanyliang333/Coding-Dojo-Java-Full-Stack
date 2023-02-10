@@ -1,0 +1,4 @@
+INDEX VERSION 1.131+C:\Users\tiffa\OneDrive\Desktop\Coding Dojo\Java\Java_Spring\daikichi_routes\.metadata\.plugins\org.eclipse.jdt.core
+3844764474.index
+315317942.index
+1865797976.index

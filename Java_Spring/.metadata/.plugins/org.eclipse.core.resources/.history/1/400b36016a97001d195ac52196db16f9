@@ -1,0 +1,55 @@
+package com.book.club.models;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
+
+@Entity
+@Table (name="books")
+public class Book {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	
+	@NotEmpty(message="Title is required!")
+	@Size(min=1; message="Title must have at least 1 character.")
+	private String title;
+	
+	@NotEmpty(message="Author is required!")
+	@Size(min=1, message="Title must have at least 1 character.")
+	private String author;
+	
+	@NotEmpty(message="Thoughts required!")
+	@Size(min=10, message="Thoughts musthave at least 10 characters.")
+	private String thoughts;
+	
+	@Column(updatable=false)
+	private Date created_at;
+	private Date updated_at;
+	
+	@PrePersist
+	protected void userCreate() {
+		this.created_at = new Date();
+	}
+	
+	@PreUpdate
+	protected void userUpdate() {
+		new Date();
+	}
+	
+	public Book() {
+		
+	}
+	
+}

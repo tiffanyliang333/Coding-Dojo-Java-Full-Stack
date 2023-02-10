@@ -1,0 +1,11 @@
+INDEX VERSION 1.4+C:\Users\tiffa\OneDrive\Desktop\Coding Dojo\Java\Java_Spring\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
+1257368787.index
+2482789743.index
+2491499936.index
+1114816168.index
+2664704873.index
+4099427194.index
+3681443778.index
+246379512.index
+528588365.index
+4256738201.index

@@ -1,0 +1,40 @@
+package com.project.manager.services;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.project.manager.models.Project;
+import com.project.manager.repositories.ProjectRepository;
+
+@Service
+public class ProjectService {
+	@Autowired
+	private ProjectRepository projectRepo;
+	
+	public Project findById(Long id) {
+		Optional<Project>result = projectRepo.findById(id);
+		if(result.isPresent()) {
+			return result.get();
+		}
+		return null;
+	}
+	
+	public List<Project> all(){
+		return projectRepo.findAll();
+	}
+	
+	public Project upload(Project project) {
+		return projectRepo.save(project);
+	}
+	
+	public Project update(Project project) {
+		return projectRepo.save(project);
+	}
+	
+	public void deleteProject(Project project) {
+		projectRepo.delete(project);
+	}
+}

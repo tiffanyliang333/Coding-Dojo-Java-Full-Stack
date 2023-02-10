@@ -1,0 +1,5 @@
+package com.book.club.repositories;
+
+public interface BookRepository {
+
+}
